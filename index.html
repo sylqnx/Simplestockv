@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>SimpleStock — Know Your Stock</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #F7F8FA;
+  --surface:   #FFFFFF;
+  --border:    #E8ECF0;
+  --accent:    #1D6FE8;
+  --accent-dim:#EBF2FF;
+  --green:     #16A34A;
+  --green-dim: #DCFCE7;
+  --amber:     #D97706;
+  --amber-dim: #FEF3C7;
+  --red:       #DC2626;
+  --red-dim:   #FEE2E2;
+  --gray:      #9CA3AF;
+  --gray-dim:  #F3F4F6;
+  --text:      #111827;
+  --text-2:    #6B7280;
+  --text-3:    #9CA3AF;
+  --radius:    12px;
+  --radius-sm: 8px;
+  --shadow:    0 1px 4px rgba(0,0,0,0.07), 0 4px 16px rgba(0,0,0,0.04);
+  --shadow-up: 0 -4px 24px rgba(0,0,0,0.10);
+  --font:      'DM Sans', sans-serif;
+  --font-mono: 'DM Mono', monospace;
+}
+
+html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100dvh; overflow-x: hidden; }
+
+.screen { min-height: 100dvh; }
+.hidden { display: none !important; }
+
+/* ── AUTH ── */
+.auth-wrap {
+  min-height: 100dvh; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 24px 20px 40px;
+  background: linear-gradient(160deg, #EBF2FF 0%, #F7F8FA 50%);
+}
+.auth-brand { text-align: center; margin-bottom: 32px; }
+.auth-logo {
+  width: 56px; height: 56px; background: var(--accent); color: #fff;
+  border-radius: 16px; display: flex; align-items: center; justify-content: center;
+  font-size: 26px; font-weight: 700; margin: 0 auto 14px;
+  box-shadow: 0 8px 24px rgba(29,111,232,0.25);
+}
+.auth-title { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
+.auth-sub   { font-size: 15px; color: var(--text-2); margin-top: 6px; }
+.auth-card  {
+  background: var(--surface); border-radius: 20px;
+  padding: 28px 24px; width: 100%; max-width: 400px; box-shadow: var(--shadow);
+}
+.auth-tabs {
+  display: flex; background: var(--gray-dim);
+  border-radius: 10px; padding: 4px; margin-bottom: 24px;
+}
+.auth-tab {
+  flex: 1; border: none; background: transparent; padding: 10px;
+  font-family: var(--font); font-size: 15px; font-weight: 500;
+  color: var(--text-2); border-radius: 8px; cursor: pointer; transition: all 0.18s;
+}
+.auth-tab.active {
+  background: var(--surface); color: var(--text);
+  font-weight: 600; box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+}
+.auth-note  { text-align: center; font-size: 13px; color: var(--text-3); margin-top: 16px; }
+.auth-error { color: var(--red); font-size: 13px; margin-top: 10px; text-align: center; min-height: 18px; }
+
+/* ── FORM ── */
+.auth-form  { display: flex; flex-direction: column; }
+.field-group { margin-bottom: 16px; }
+.field-label { display: block; font-size: 13px; font-weight: 600; color: var(--text-2); margin-bottom: 7px; }
+.req { color: var(--accent); }
+.opt { color: var(--text-3); font-weight: 400; }
+.field-input {
+  width: 100%; height: 48px; padding: 0 14px;
+  border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+  font-family: var(--font); font-size: 15px; color: var(--text);
+  background: var(--surface); outline: none;
+  transition: border-color 0.15s; -webkit-appearance: none;
+}
+.field-input:focus       { border-color: var(--accent); }
+.field-input::placeholder{ color: var(--text-3); }
+.field-large {
+  height: 64px; font-size: 28px;
+  font-family: var(--font-mono); font-weight: 500;
+  text-align: center; letter-spacing: 2px;
+}
+
+/* ── BUTTONS ── */
+.btn-primary {
+  width: 100%; height: 50px; background: var(--accent); color: #fff;
+  border: none; border-radius: var(--radius-sm);
+  font-family: var(--font); font-size: 16px; font-weight: 600;
+  cursor: pointer; transition: opacity 0.15s, transform 0.1s;
+  margin-top: 4px;
+}
+.btn-primary:active   { opacity: 0.88; transform: scale(0.98); }
+.btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn-upgrade {
+  background: linear-gradient(135deg, #1D6FE8, #0EA5E9);
+  box-shadow: 0 4px 16px rgba(29,111,232,0.30);
+}
+
+/* ── PLAN BANNER ── */
+.plan-banner {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 11px 16px; font-size: 13px; font-weight: 500; gap: 10px;
+}
+.plan-banner.banner-amber { background: var(--amber-dim); color: #92400E; }
+.plan-banner.banner-red   { background: var(--red-dim);   color: #991B1B; }
+.banner-upgrade-btn {
+  background: none; border: none; font-family: var(--font);
+  font-size: 13px; font-weight: 700; color: inherit;
+  cursor: pointer; white-space: nowrap; text-decoration: underline;
+}
+
+/* ── HEADER ── */
+.app-header {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 0 16px; height: 56px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 50;
+}
+.header-left  { display: flex; align-items: center; gap: 10px; }
+.header-logo  {
+  width: 32px; height: 32px; background: var(--accent); color: #fff;
+  border-radius: 9px; display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 700;
+}
+.header-name  { font-size: 17px; font-weight: 700; letter-spacing: -0.3px; }
+.header-right { display: flex; align-items: center; gap: 8px; }
+.pro-badge {
+  background: linear-gradient(135deg, #1D6FE8, #0EA5E9);
+  color: #fff; font-size: 10px; font-weight: 700;
+  padding: 3px 8px; border-radius: 999px; letter-spacing: 0.5px;
+}
+.user-name {
+  font-size: 13px; font-weight: 600; color: var(--text-2);
+  max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.logout-btn {
+  background: var(--gray-dim); border: none; border-radius: 7px;
+  padding: 6px 11px; font-family: var(--font);
+  font-size: 12px; font-weight: 600; color: var(--text-2); cursor: pointer;
+}
+
+/* ── SUMMARY CARDS ── */
+.cards-section { padding: 16px 0 8px; }
+.cards-scroll {
+  display: flex; gap: 12px; padding: 0 16px;
+  overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none;
+}
+.cards-scroll::-webkit-scrollbar { display: none; }
+.summary-card {
+  background: var(--surface); border-radius: var(--radius);
+  padding: 16px; min-width: 130px; flex-shrink: 0;
+  border: 1.5px solid var(--border); cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.summary-card:active { transform: scale(0.97); box-shadow: var(--shadow); }
+.card-icon   { font-size: 20px; margin-bottom: 8px; }
+.card-number { font-size: 32px; font-weight: 700; line-height: 1; letter-spacing: -1px; }
+.card-label  { font-size: 12px; color: var(--text-2); margin-top: 5px; font-weight: 500; }
+
+/* ── SEARCH + FILTER ── */
+.search-section { padding: 12px 16px 8px; display: flex; flex-direction: column; gap: 10px; }
+.search-input {
+  width: 100%; height: 44px; padding: 0 14px 0 40px;
+  border: 1.5px solid var(--border); border-radius: 10px;
+  font-family: var(--font); font-size: 15px; color: var(--text);
+  background: var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E") no-repeat 12px center;
+  outline: none;
+}
+.search-input:focus { border-color: var(--accent); }
+.filter-chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.filter-chips::-webkit-scrollbar { display: none; }
+.chip {
+  border: 1.5px solid var(--border); background: var(--surface);
+  border-radius: 999px; padding: 7px 16px; font-family: var(--font);
+  font-size: 13px; font-weight: 500; color: var(--text-2);
+  cursor: pointer; transition: all 0.15s; white-space: nowrap; flex-shrink: 0;
+}
+.chip.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+
+/* ── PRODUCTS ── */
+.table-section { padding: 8px 0 120px; }
+.skeleton-row {
+  height: 64px;
+  background: linear-gradient(90deg, var(--gray-dim) 25%, #e9ecef 50%, var(--gray-dim) 75%);
+  background-size: 200% 100%; animation: shimmer 1.4s infinite;
+  margin: 0 16px 10px; border-radius: var(--radius-sm);
+}
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+.empty-state { text-align: center; padding: 60px 20px; }
+.empty-icon  { font-size: 48px; margin-bottom: 16px; }
+.empty-title { font-size: 17px; font-weight: 600; margin-bottom: 6px; }
+.empty-sub   { font-size: 14px; color: var(--text-2); }
+
+.product-row {
+  display: flex; align-items: center; padding: 14px 16px;
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  gap: 12px; transition: background 0.1s; animation: slideIn 0.2s ease;
+}
+@keyframes slideIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+.product-row:active { background: var(--gray-dim); }
+.product-row:first-child { border-top: 1px solid var(--border); }
+
+.product-info    { flex: 1; min-width: 0; }
+.product-name    { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.product-cat     { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+.product-qty-col { text-align: center; min-width: 48px; }
+.product-qty     { font-size: 20px; font-weight: 700; font-family: var(--font-mono); }
+.product-qty-label { font-size: 10px; color: var(--text-3); font-weight: 500; }
+.product-status  { min-width: 64px; text-align: center; }
+.status-pill     { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+.status-good { background: var(--green-dim); color: #166534; }
+.status-low  { background: var(--red-dim);   color: #991B1B; }
+.status-dead { background: var(--gray-dim);  color: #4B5563; }
+.status-top  { background: var(--accent-dim);color: #1e40af; }
+.product-actions { display: flex; gap: 6px; }
+.stock-btn {
+  width: 36px; height: 36px; border: none; border-radius: 9px;
+  font-size: 20px; font-weight: 500; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.1s, opacity 0.1s; line-height: 1;
+}
+.stock-btn:active { transform: scale(0.90); opacity: 0.8; }
+.btn-add { background: var(--green-dim); color: var(--green); }
+.btn-sub { background: var(--red-dim);   color: var(--red); }
+
+/* ── FREE LIMIT BAR ── */
+.free-limit-bar {
+  position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
+  background: #1f2937; color: #fff; font-size: 13px; font-weight: 500;
+  padding: 9px 18px; border-radius: 999px; white-space: nowrap;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.20); z-index: 40;
+}
+
+/* ── FAB ── */
+.fab {
+  position: fixed; bottom: 24px; right: 20px;
+  width: 58px; height: 58px; background: var(--accent); color: #fff;
+  border: none; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 18px rgba(29,111,232,0.40); cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s; z-index: 40;
+}
+.fab:active { transform: scale(0.93); box-shadow: 0 2px 8px rgba(29,111,232,0.30); }
+
+/* ── BACKDROP ── */
+.backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.40);
+  z-index: 60; animation: fadeIn 0.2s;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* ── BOTTOM SHEETS ── */
+.bottom-sheet {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--surface); border-radius: 20px 20px 0 0;
+  padding: 16px 24px 40px; z-index: 70;
+  box-shadow: var(--shadow-up);
+  animation: slideUp 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+  max-height: 90dvh; overflow-y: auto;
+}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.sheet-handle {
+  width: 40px; height: 4px; background: var(--border);
+  border-radius: 999px; margin: 0 auto 20px;
+}
+.sheet-title { font-size: 20px; font-weight: 700; margin-bottom: 20px; letter-spacing: -0.3px; }
+
+.adjust-product-name  { font-size: 15px; color: var(--text-2); margin-bottom: 16px; margin-top: -14px; }
+.adjust-current {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--gray-dim); border-radius: 10px; padding: 14px 16px; margin-bottom: 20px;
+}
+.adjust-current-label { font-size: 14px; color: var(--text-2); font-weight: 500; }
+.adjust-current-value { font-size: 24px; font-weight: 700; font-family: var(--font-mono); }
+
+.upgrade-icon  { font-size: 36px; text-align: center; margin-bottom: 8px; }
+.upgrade-desc  { text-align: center; color: var(--text-2); font-size: 15px; margin-bottom: 20px; margin-top: -12px; }
+.upgrade-price { text-align: center; margin-bottom: 20px; line-height: 1; }
+.price-amount  { font-size: 52px; font-weight: 700; font-family: var(--font-mono); letter-spacing: -2px; }
+.price-currency{ font-size: 20px; font-weight: 600; color: var(--text-2); vertical-align: super; }
+.price-period  { font-size: 15px; color: var(--text-3); font-weight: 500; }
+.upgrade-features { margin-bottom: 24px; display: flex; flex-direction: column; gap: 10px; }
+.upgrade-feature  { font-size: 15px; font-weight: 500; }
+.upgrade-note  { text-align: center; font-size: 13px; color: var(--text-3); margin-top: 14px; line-height: 1.5; }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 96px; left: 50%; transform: translateX(-50%);
+  background: #1f2937; color: #fff; padding: 11px 20px;
+  border-radius: 999px; font-size: 14px; font-weight: 500;
+  white-space: nowrap; z-index: 200;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.20); animation: toastIn 0.2s ease;
+}
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+.toast.toast-success { border-left: 4px solid var(--green); }
+.toast.toast-error   { border-left: 4px solid var(--red); }
+.toast.toast-info    { border-left: 4px solid var(--accent); }
+
+@media (min-width: 480px) {
+  .bottom-sheet { max-width: 480px; left: 50%; transform: translateX(-50%); }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════
+     AUTH SCREEN
+═══════════════════════════════════════════ -->
+<div id="auth-screen" class="screen">
+  <div class="auth-wrap">
+    <div class="auth-brand">
+      <div class="auth-logo">S</div>
+      <div class="auth-title">SimpleStock</div>
+      <div class="auth-sub">Know your stock. Run your shop.</div>
+    </div>
+    <div class="auth-card">
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-tab="login">Log In</button>
+        <button class="auth-tab" data-tab="signup">Sign Up</button>
+      </div>
+
+      <!-- Login -->
+      <div id="login-form" class="auth-form">
+        <div class="field-group">
+          <label class="field-label">Email <span class="req">*</span></label>
+          <input id="login-email" class="field-input" type="email" placeholder="you@example.com" autocomplete="email" />
+        </div>
+        <div class="field-group">
+          <label class="field-label">Password <span class="req">*</span></label>
+          <input id="login-password" class="field-input" type="password" placeholder="Your password" autocomplete="current-password" />
+        </div>
+        <div id="login-error" class="auth-error"></div>
+        <button id="login-btn" class="btn-primary">Log In</button>
+      </div>
+
+      <!-- Signup -->
+      <div id="signup-form" class="auth-form hidden">
+        <div class="field-group">
+          <label class="field-label">Full Name <span class="req">*</span></label>
+          <input id="signup-name" class="field-input" type="text" placeholder="Your name" autocomplete="name" />
+        </div>
+        <div class="field-group">
+          <label class="field-label">Email <span class="req">*</span></label>
+          <input id="signup-email" class="field-input" type="email" placeholder="you@example.com" autocomplete="email" />
+        </div>
+        <div class="field-group">
+          <label class="field-label">Password <span class="req">*</span></label>
+          <input id="signup-password" class="field-input" type="password" placeholder="At least 6 characters" autocomplete="new-password" />
+        </div>
+        <div id="signup-error" class="auth-error"></div>
+        <button id="signup-btn" class="btn-primary">Create Free Account</button>
+      </div>
+
+      <div class="auth-note">🔒 Your data is private and secure.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     DASHBOARD SCREEN
+═══════════════════════════════════════════ -->
+<div id="dashboard-screen" class="screen hidden">
+
+  <header class="app-header">
+    <div class="header-left">
+      <div class="header-logo">S</div>
+      <div class="header-name">SimpleStock</div>
+    </div>
+    <div class="header-right">
+      <span id="pro-badge" class="pro-badge hidden">PRO</span>
+      <span id="user-name-display" class="user-name"></span>
+      <button id="logout-btn" class="logout-btn">Out</button>
+    </div>
+  </header>
+
+  <div id="plan-banner" class="plan-banner hidden">
+    <span id="plan-banner-text"></span>
+    <button id="plan-banner-btn" class="banner-upgrade-btn">Upgrade →</button>
+  </div>
+
+  <div class="cards-section">
+    <div class="cards-scroll">
+      <div class="summary-card" data-filter="all">
+        <div class="card-icon">📦</div>
+        <div id="card-total" class="card-number">—</div>
+        <div class="card-label">Total Products</div>
+      </div>
+      <div class="summary-card" data-filter="low">
+        <div class="card-icon">⚠️</div>
+        <div id="card-low" class="card-number">—</div>
+        <div class="card-label">Low Stock</div>
+      </div>
+      <div class="summary-card" data-filter="top">
+        <div class="card-icon">🔥</div>
+        <div id="card-top" class="card-number">—</div>
+        <div class="card-label">Top Selling</div>
+      </div>
+      <div class="summary-card" data-filter="dead">
+        <div class="card-icon">💤</div>
+        <div id="card-dead" class="card-number">—</div>
+        <div class="card-label">Dead Stock</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="search-section">
+    <input id="search-input" class="search-input" type="search" placeholder="Search products or categories…" />
+    <div class="filter-chips">
+      <button class="chip active" data-chip="all">All</button>
+      <button class="chip" data-chip="good">Good</button>
+      <button class="chip" data-chip="low">Low</button>
+      <button class="chip" data-chip="top">🔥 Top</button>
+      <button class="chip" data-chip="dead">Dead</button>
+    </div>
+  </div>
+
+  <div class="table-section">
+    <div id="loading-skeletons">
+      <div class="skeleton-row"></div>
+      <div class="skeleton-row"></div>
+      <div class="skeleton-row"></div>
+      <div class="skeleton-row"></div>
+    </div>
+    <div id="products-list" class="hidden"></div>
+    <div id="empty-state" class="empty-state hidden">
+      <div class="empty-icon">📭</div>
+      <div class="empty-title">No products yet</div>
+      <div class="empty-sub">Add your first product. It takes 10 seconds.</div>
+    </div>
+  </div>
+
+  <div id="free-limit-bar" class="free-limit-bar hidden"></div>
+
+  <button id="fab-add" class="fab" aria-label="Add product">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+  </button>
+
+</div>
+
+<!-- ═══════════════════════════════════════════
+     BACKDROP + SHEETS
+═══════════════════════════════════════════ -->
+<div id="backdrop" class="backdrop hidden"></div>
+
+<!-- Add Product -->
+<div id="sheet-add-product" class="bottom-sheet hidden">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">Add Product</div>
+  <div class="field-group">
+    <label class="field-label">Product Name <span class="req">*</span></label>
+    <input id="new-product-name" class="field-input" type="text" placeholder="e.g. Coca-Cola 500ml" />
+  </div>
+  <div class="field-group">
+    <label class="field-label">Quantity <span class="req">*</span></label>
+    <input id="new-product-qty" class="field-input field-large" type="number" min="0" placeholder="0" inputmode="numeric" />
+  </div>
+  <div class="field-group">
+    <label class="field-label">Min Stock Alert <span class="opt">(optional, default 5)</span></label>
+    <input id="new-product-min" class="field-input" type="number" min="0" placeholder="5" inputmode="numeric" />
+  </div>
+  <div class="field-group">
+    <label class="field-label">Category <span class="opt">(optional)</span></label>
+    <input id="new-product-cat" class="field-input" type="text" placeholder="e.g. Drinks" />
+  </div>
+  <div id="add-product-error" class="auth-error"></div>
+  <button id="confirm-add-product" class="btn-primary">Add Product</button>
+</div>
+
+<!-- Adjust Stock -->
+<div id="sheet-stock-adjust" class="bottom-sheet hidden">
+  <div class="sheet-handle"></div>
+  <div id="adjust-sheet-title" class="sheet-title">Add Stock</div>
+  <div id="adjust-product-name" class="adjust-product-name"></div>
+  <div class="adjust-current">
+    <span class="adjust-current-label">Current stock</span>
+    <span id="adjust-current-qty" class="adjust-current-value">0</span>
+  </div>
+  <div class="field-group">
+    <label class="field-label">Amount</label>
+    <input id="adjust-qty-input" class="field-input field-large" type="number" min="1" placeholder="0" inputmode="numeric" />
+  </div>
+  <div id="adjust-error" class="auth-error"></div>
+  <button id="confirm-adjust" class="btn-primary">Confirm</button>
+</div>
+
+<!-- Upgrade -->
+<div id="sheet-upgrade" class="bottom-sheet hidden">
+  <div class="sheet-handle"></div>
+  <div class="upgrade-icon">⚡</div>
+  <div class="sheet-title" style="text-align:center">Upgrade to Pro</div>
+  <div class="upgrade-desc">Unlock unlimited products and full stock history.</div>
+  <div class="upgrade-price">
+    <span class="price-currency">GH₵</span><span class="price-amount">15</span>
+    <div class="price-period">per month</div>
+  </div>
+  <div class="upgrade-features">
+    <div class="upgrade-feature">✅ Unlimited products</div>
+    <div class="upgrade-feature">✅ Full stock movement history</div>
+    <div class="upgrade-feature">✅ Priority support</div>
+    <div class="upgrade-feature">✅ Early access to new features</div>
+  </div>
+  <button id="confirm-upgrade" class="btn-primary btn-upgrade">Upgrade via WhatsApp</button>
+  <div class="upgrade-note">Pay via Mobile Money. We'll activate your account within minutes.</div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast hidden"></div>
+
+
+<!-- ═══════════════════════════════════════════
+     APP SCRIPT
+═══════════════════════════════════════════ -->
+<script type="module">
+
+// ════════════════════════════════════════════
+// ✏️  PASTE YOUR 2 SUPABASE VALUES BELOW ONLY
+// ════════════════════════════════════════════
+const SUPABASE_URL  = 'https://ohpbdvcutosjnhwoxntn.supabase.co'
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ocGJkdmN1dG9zam5od294bnRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3NzYzNzAsImV4cCI6MjA5NjM1MjM3MH0.v0YutOkoyxsx6qflBJCX7wO7p33GwnZcSbdq1t0-n3w'
+// ════════════════════════════════════════════
+
+// App settings
+const FREE_LIMIT   = 10
+const DEAD_DAYS    = 30
+const WHATSAPP_NUM = '233531344454'
+const PRO_PRICE    = 15
+
+// Supabase
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON)
+
+// State
+let currentUser    = null
+let currentProfile = null
+let allProducts    = []
+let activeFilter   = 'all'
+let adjustMode     = null
+let adjustProduct  = null
+
+// DOM
+const $ = id => document.getElementById(id)
+const authScreen       = $('auth-screen')
+const dashScreen       = $('dashboard-screen')
+const loginForm        = $('login-form')
+const signupForm       = $('signup-form')
+const loginBtn         = $('login-btn')
+const signupBtn        = $('signup-btn')
+const loginError       = $('login-error')
+const signupError      = $('signup-error')
+const logoutBtn        = $('logout-btn')
+const userNameDisplay  = $('user-name-display')
+const proBadge         = $('pro-badge')
+const planBanner       = $('plan-banner')
+const planBannerText   = $('plan-banner-text')
+const planBannerBtn    = $('plan-banner-btn')
+const cardTotal        = $('card-total')
+const cardLow          = $('card-low')
+const cardTop          = $('card-top')
+const cardDead         = $('card-dead')
+const searchInput      = $('search-input')
+const productsList     = $('products-list')
+const loadingSkeletons = $('loading-skeletons')
+const emptyState       = $('empty-state')
+const freeLimitBar     = $('free-limit-bar')
+const fab              = $('fab-add')
+const backdrop         = $('backdrop')
+const sheetAdd         = $('sheet-add-product')
+const sheetAdjust      = $('sheet-stock-adjust')
+const sheetUpgrade     = $('sheet-upgrade')
+const newProductName   = $('new-product-name')
+const newProductQty    = $('new-product-qty')
+const newProductMin    = $('new-product-min')
+const newProductCat    = $('new-product-cat')
+const confirmAddBtn    = $('confirm-add-product')
+const addProductError  = $('add-product-error')
+const adjustTitle      = $('adjust-sheet-title')
+const adjustProdName   = $('adjust-product-name')
+const adjustCurrentQty = $('adjust-current-qty')
+const adjustQtyInput   = $('adjust-qty-input')
+const confirmAdjust    = $('confirm-adjust')
+const adjustError      = $('adjust-error')
+const confirmUpgrade   = $('confirm-upgrade')
+const toast            = $('toast')
+
+
+// ════════════════════════════════════════════
+// BOOT
+// ════════════════════════════════════════════
+supabase.auth.getSession().then(({ data: { session } }) => {
+  if (session) { currentUser = session.user; initDashboard() }
+  else showScreen('auth')
+})
+
+supabase.auth.onAuthStateChange((_e, session) => {
+  if (session) currentUser = session.user
+})
+
+
+// ════════════════════════════════════════════
+// AUTH
+// ════════════════════════════════════════════
+document.querySelectorAll('.auth-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'))
+    tab.classList.add('active')
+    const which = tab.dataset.tab
+    loginForm.classList.toggle('hidden',  which !== 'login')
+    signupForm.classList.toggle('hidden', which !== 'signup')
+    loginError.textContent = signupError.textContent = ''
+  })
+})
+
+loginBtn.addEventListener('click', async () => {
+  const email    = $('login-email').value.trim()
+  const password = $('login-password').value.trim()
+  loginError.textContent = ''
+  if (!email || !password) { loginError.textContent = 'Please fill in all fields.'; return }
+  loginBtn.disabled = true; loginBtn.textContent = 'Logging in…'
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+  loginBtn.disabled = false; loginBtn.textContent = 'Log In'
+  if (error) { loginError.textContent = 'Wrong email or password.'; return }
+  currentUser = data.user
+  initDashboard()
+})
+
+signupBtn.addEventListener('click', async () => {
+  const name     = $('signup-name').value.trim()
+  const email    = $('signup-email').value.trim()
+  const password = $('signup-password').value.trim()
+  signupError.textContent = ''
+  if (!name || !email || !password) { signupError.textContent = 'Please fill in all fields.'; return }
+  if (password.length < 6)          { signupError.textContent = 'Password must be at least 6 characters.'; return }
+  signupBtn.disabled = true; signupBtn.textContent = 'Creating account…'
+  const { data, error } = await supabase.auth.signUp({ email, password })
+  signupBtn.disabled = false; signupBtn.textContent = 'Create Free Account'
+  if (error) { signupError.textContent = error.message; return }
+  currentUser = data.user
+  await supabase.from('profiles').upsert({
+    id: currentUser.id, full_name: name, email, plan: 'free', expiry_date: null
+  })
+  initDashboard()
+})
+
+logoutBtn.addEventListener('click', async () => {
+  await supabase.auth.signOut()
+  currentUser = currentProfile = null; allProducts = []
+  showScreen('auth'); showToast('Logged out.', 'info')
+})
+
+
+// ════════════════════════════════════════════
+// DASHBOARD
+// ════════════════════════════════════════════
+async function initDashboard () {
+  showScreen('dashboard'); showSkeletons(true)
+  await fetchProfile()
+
+  // Auto-downgrade expired Pro
+  if (currentProfile.plan === 'pro' && currentProfile.expiry_date) {
+    if (new Date() > new Date(currentProfile.expiry_date)) {
+      await supabase.from('profiles').update({ plan: 'free', expiry_date: null }).eq('id', currentUser.id)
+      currentProfile.plan = 'free'; currentProfile.expiry_date = null
+    }
+  }
+
+  updateHeaderUI()
+  await fetchProducts()
+  updatePlanBanner()
+  await renderProducts()
+  showSkeletons(false)
+}
+
+async function fetchProfile () {
+  const { data } = await supabase.from('profiles').select('*').eq('id', currentUser.id).single()
+  if (!data) {
+    await supabase.from('profiles').insert({
+      id: currentUser.id, email: currentUser.email, full_name: '', plan: 'free', expiry_date: null
+    })
+    currentProfile = { plan: 'free', expiry_date: null, email: currentUser.email, full_name: '' }
+  } else {
+    currentProfile = data
+  }
+}
+
+async function fetchProducts () {
+  const { data } = await supabase.from('products')
+    .select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false })
+  allProducts = data || []
+}
+
+
+// ════════════════════════════════════════════
+// UI
+// ════════════════════════════════════════════
+function updateHeaderUI () {
+  const name = currentProfile.full_name || currentProfile.email || ''
+  userNameDisplay.textContent = name.split(' ')[0]
+  proBadge.classList.toggle('hidden', currentProfile.plan !== 'pro')
+}
+
+function updatePlanBanner () {
+  planBanner.className = 'plan-banner hidden'
+  planBannerText.textContent = ''
+  const { plan, expiry_date } = currentProfile
+
+  if (plan === 'pro' && expiry_date) {
+    const daysLeft = Math.ceil((new Date(expiry_date) - new Date()) / 86400000)
+    if (daysLeft <= 7 && daysLeft > 0) {
+      planBanner.className = 'plan-banner banner-amber'
+      planBannerText.textContent = `Pro expires in ${daysLeft} day${daysLeft === 1 ? '' : 's'}.`
+    } else if (daysLeft <= 0) {
+      planBanner.className = 'plan-banner banner-red'
+      planBannerText.textContent = 'Your Pro plan has expired.'
+    }
+  } else if (plan === 'free') {
+    const remaining = FREE_LIMIT - allProducts.length
+    if (remaining <= 2) {
+      planBanner.className = 'plan-banner banner-amber'
+      planBannerText.textContent = `${remaining} product slot${remaining === 1 ? '' : 's'} left on free plan.`
+    }
+  }
+}
+
+function updateFreeLimitBar (count) {
+  if (currentProfile.plan === 'pro') { freeLimitBar.classList.add('hidden'); return }
+  freeLimitBar.classList.remove('hidden')
+  freeLimitBar.textContent = `${count} / ${FREE_LIMIT} products used`
+  freeLimitBar.style.background = count >= FREE_LIMIT ? '#DC2626' : '#1f2937'
+}
+
+
+// ════════════════════════════════════════════
+// STATUS
+// ════════════════════════════════════════════
+function getStatus (product, topIds) {
+  const now               = new Date()
+  const last              = product.last_movement ? new Date(product.last_movement) : null
+  const daysSinceCreated  = (now - new Date(product.created_at)) / 86400000
+  const daysSinceMovement = last ? (now - last) / 86400000 : null
+  if (topIds && topIds.includes(product.id)) return 'top'
+  const isDead = (!last && daysSinceCreated > DEAD_DAYS) ||
+                 (daysSinceMovement !== null && daysSinceMovement > DEAD_DAYS)
+  if (isDead) return 'dead'
+  if (product.quantity <= (product.minimum_stock ?? 5)) return 'low'
+  return 'good'
+}
+
+async function getTopSellingIds () {
+  const since = new Date(Date.now() - DEAD_DAYS * 86400000).toISOString()
+  const { data } = await supabase.from('stock_movements')
+    .select('product_id, quantity')
+    .eq('user_id', currentUser.id)
+    .eq('type', 'remove')
+    .gte('created_at', since)
+  if (!data || !data.length) return []
+  const sums = {}
+  data.forEach(m => { sums[m.product_id] = (sums[m.product_id] || 0) + m.quantity })
+  return Object.entries(sums).sort((a,b) => b[1]-a[1]).slice(0,3).map(([id]) => id)
+}
+
+
+// ════════════════════════════════════════════
+// RENDER
+// ════════════════════════════════════════════
+async function renderProducts () {
+  const topIds = await getTopSellingIds()
+  const search = searchInput.value.trim().toLowerCase()
+  const allWithStatus = allProducts.map(p => ({ ...p, status: getStatus(p, topIds) }))
+
+  cardTotal.textContent = allProducts.length
+  cardLow.textContent   = allWithStatus.filter(p => p.status === 'low').length
+  cardTop.textContent   = allWithStatus.filter(p => p.status === 'top').length
+  cardDead.textContent  = allWithStatus.filter(p => p.status === 'dead').length
+  updateFreeLimitBar(allProducts.length)
+
+  let filtered = allWithStatus
+  if (activeFilter !== 'all') filtered = filtered.filter(p => p.status === activeFilter)
+  if (search) filtered = filtered.filter(p =>
+    p.name.toLowerCase().includes(search) ||
+    (p.category && p.category.toLowerCase().includes(search))
+  )
+
+  if (!filtered.length) {
+    productsList.innerHTML = ''
+    emptyState.classList.remove('hidden')
+    emptyState.querySelector('.empty-title').textContent =
+      allProducts.length === 0 ? 'No products yet' : 'No products match'
+    emptyState.querySelector('.empty-sub').textContent =
+      allProducts.length === 0 ? 'Tap + to add your first product.' : 'Try a different search or filter.'
+    return
+  }
+
+  emptyState.classList.add('hidden')
+  productsList.innerHTML = filtered.map(p => productRowHTML(p)).join('')
+  document.querySelectorAll('.btn-add').forEach(btn =>
+    btn.addEventListener('click', e => { e.stopPropagation(); openAdjustSheet('add', btn.dataset.id) }))
+  document.querySelectorAll('.btn-sub').forEach(btn =>
+    btn.addEventListener('click', e => { e.stopPropagation(); openAdjustSheet('sub', btn.dataset.id) }))
+}
+
+function productRowHTML (p) {
+  const labels = { good: 'Good', low: 'Low', dead: 'Dead', top: '🔥 Top' }
+  const cls    = { good: 'status-good', low: 'status-low', dead: 'status-dead', top: 'status-top' }
+  return `<div class="product-row">
+    <div class="product-info">
+      <div class="product-name">${esc(p.name)}</div>
+      ${p.category ? `<div class="product-cat">${esc(p.category)}</div>` : ''}
+    </div>
+    <div class="product-qty-col">
+      <div class="product-qty">${p.quantity}</div>
+      <div class="product-qty-label">units</div>
+    </div>
+    <div class="product-status"><span class="status-pill ${cls[p.status]}">${labels[p.status]}</span></div>
+    <div class="product-actions">
+      <button class="stock-btn btn-add" data-id="${p.id}">+</button>
+      <button class="stock-btn btn-sub" data-id="${p.id}">−</button>
+    </div>
+  </div>`
+}
+
+
+// ════════════════════════════════════════════
+// SEARCH + FILTER
+// ════════════════════════════════════════════
+searchInput.addEventListener('input', renderProducts)
+
+document.querySelectorAll('.chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'))
+    chip.classList.add('active'); activeFilter = chip.dataset.chip; renderProducts()
+  })
+})
+
+document.querySelectorAll('.summary-card').forEach(card => {
+  card.addEventListener('click', () => {
+    activeFilter = card.dataset.filter
+    document.querySelectorAll('.chip').forEach(c =>
+      c.classList.toggle('active', c.dataset.chip === activeFilter))
+    renderProducts()
+  })
+})
+
+
+// ════════════════════════════════════════════
+// ADD PRODUCT
+// ════════════════════════════════════════════
+fab.addEventListener('click', () => {
+  if (currentProfile.plan === 'free' && allProducts.length >= FREE_LIMIT) {
+    openSheet(sheetUpgrade); return
+  }
+  openSheet(sheetAdd); newProductName.focus()
+})
+
+confirmAddBtn.addEventListener('click', async () => {
+  addProductError.textContent = ''
+  const name = newProductName.value.trim()
+  const qty  = parseInt(newProductQty.value, 10)
+  const min  = parseInt(newProductMin.value, 10) || 5
+  const cat  = newProductCat.value.trim() || null
+  if (!name)      { addProductError.textContent = 'Product name is required.'; return }
+  if (isNaN(qty)) { addProductError.textContent = 'Quantity is required.'; return }
+  if (qty < 0)    { addProductError.textContent = 'Quantity cannot be negative.'; return }
+  if (currentProfile.plan === 'free' && allProducts.length >= FREE_LIMIT) {
+    addProductError.textContent = 'Free limit reached. Upgrade to add more.'; return
+  }
+  confirmAddBtn.disabled = true; confirmAddBtn.textContent = 'Adding…'
+  const { data, error } = await supabase.from('products').insert({
+    user_id: currentUser.id, name, quantity: qty, minimum_stock: min, category: cat, last_movement: null
+  }).select().single()
+  confirmAddBtn.disabled = false; confirmAddBtn.textContent = 'Add Product'
+  if (error) { addProductError.textContent = 'Something went wrong. Try again.'; return }
+  allProducts.unshift(data)
+  closeAllSheets(); clearAddForm(); renderProducts(); showToast('Product added ✓', 'success')
+})
+
+function clearAddForm () {
+  newProductName.value = newProductQty.value = newProductMin.value = newProductCat.value = ''
+  addProductError.textContent = ''
+}
+
+
+// ════════════════════════════════════════════
+// ADJUST STOCK
+// ════════════════════════════════════════════
+function openAdjustSheet (mode, productId) {
+  adjustMode = mode
+  adjustProduct = allProducts.find(p => p.id === productId)
+  if (!adjustProduct) return
+  adjustTitle.textContent      = mode === 'add' ? 'Add Stock' : 'Remove Stock'
+  adjustProdName.textContent   = adjustProduct.name
+  adjustCurrentQty.textContent = adjustProduct.quantity
+  adjustQtyInput.value = ''; adjustError.textContent = ''
+  confirmAdjust.style.background = mode === 'add' ? 'var(--green)' : 'var(--red)'
+  openSheet(sheetAdjust); setTimeout(() => adjustQtyInput.focus(), 300)
+}
+
+confirmAdjust.addEventListener('click', async () => {
+  adjustError.textContent = ''
+  const amount = parseInt(adjustQtyInput.value, 10)
+  if (isNaN(amount) || amount <= 0) { adjustError.textContent = 'Enter a valid amount.'; return }
+  if (adjustMode === 'sub' && amount > adjustProduct.quantity) {
+    adjustError.textContent = `You only have ${adjustProduct.quantity} units.`; return
+  }
+  confirmAdjust.disabled = true; confirmAdjust.textContent = 'Saving…'
+  const newQty = adjustMode === 'add'
+    ? adjustProduct.quantity + amount
+    : adjustProduct.quantity - amount
+  const now = new Date().toISOString()
+  const { error } = await supabase.from('products')
+    .update({ quantity: newQty, last_movement: now }).eq('id', adjustProduct.id)
+  if (error) {
+    adjustError.textContent = 'Something went wrong. Try again.'
+    confirmAdjust.disabled = false; confirmAdjust.textContent = 'Confirm'; return
+  }
+  await supabase.from('stock_movements').insert({
+    product_id: adjustProduct.id, user_id: currentUser.id,
+    type: adjustMode === 'add' ? 'add' : 'remove', quantity: amount
+  })
+  const idx = allProducts.findIndex(p => p.id === adjustProduct.id)
+  if (idx !== -1) { allProducts[idx].quantity = newQty; allProducts[idx].last_movement = now }
+  confirmAdjust.disabled = false; confirmAdjust.textContent = 'Confirm'
+  closeAllSheets(); renderProducts(); showToast('Stock updated ✓', 'success')
+})
+
+
+// ════════════════════════════════════════════
+// UPGRADE
+// ════════════════════════════════════════════
+planBannerBtn.addEventListener('click', () => openSheet(sheetUpgrade))
+
+confirmUpgrade.addEventListener('click', () => {
+  const email = currentProfile.email || currentUser.email || ''
+  const name  = currentProfile.full_name || ''
+  const msg   = encodeURIComponent(
+    `Hello, I want to upgrade to Pro.\n\nName: ${name}\nEmail: ${email}\n\nPlan: Pro Monthly — GH₵${PRO_PRICE}`
+  )
+  window.open(`https://wa.me/${WHATSAPP_NUM}?text=${msg}`, '_blank')
+})
+
+
+// ════════════════════════════════════════════
+// SHEETS
+// ════════════════════════════════════════════
+function openSheet (sheet) {
+  closeAllSheets()
+  sheet.classList.remove('hidden')
+  backdrop.classList.remove('hidden')
+  document.body.style.overflow = 'hidden'
+}
+function closeAllSheets () {
+  [sheetAdd, sheetAdjust, sheetUpgrade].forEach(s => s.classList.add('hidden'))
+  backdrop.classList.add('hidden')
+  document.body.style.overflow = ''
+}
+backdrop.addEventListener('click', closeAllSheets)
+
+
+// ════════════════════════════════════════════
+// TOAST
+// ════════════════════════════════════════════
+let toastTimer = null
+function showToast (msg, type = 'info') {
+  toast.textContent = msg
+  toast.className   = `toast toast-${type}`
+  toast.classList.remove('hidden')
+  if (toastTimer) clearTimeout(toastTimer)
+  toastTimer = setTimeout(() => toast.classList.add('hidden'), 3000)
+}
+
+
+// ════════════════════════════════════════════
+// UTILS
+// ════════════════════════════════════════════
+function showScreen (name) {
+  authScreen.classList.toggle('hidden', name !== 'auth')
+  dashScreen.classList.toggle('hidden', name !== 'dashboard')
+}
+function showSkeletons (show) {
+  loadingSkeletons.classList.toggle('hidden', !show)
+  productsList.classList.toggle('hidden', show)
+}
+function esc (str) {
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+}
+
+</script>
+</body>
+</html>
